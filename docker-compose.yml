@@ -1,0 +1,31 @@
+services:
+  mpd:
+        build:
+          args:
+            - MPD_UID=1000
+            - MPD_GID=100
+          dockerfile: 'Dockerfile'
+        post_start:
+          - command: mpd --version
+          - command: snapserver --version  
+        ports:
+          - '6600:6300' # mpd pipe stream
+          - '6680:6680' # mpd http stream
+          - '6400:8080' # ympd webserver 
+          - '1704:1704' # snapserver stream
+          - '1705:1705' # snapserver control
+          - '1780:1780' # snapweb
+        volumes:
+          - './Music:/var/lib/mpd/media:ro' # your music folder
+          - './data:/var/lib/mpd/state/:rw'
+          - './config/mpd.conf:/var/lib/mpd/mpd.conf:ro'
+          - './config/snapserver.conf:/etc/snapserver.conf:ro'
+        restart: unless-stopped
+        logging:
+          options:
+            max-size: 10m
+        cap_drop:
+          - ALL
+        cap_add:
+          - SYS_NICE # https://gitlab.alpinelinux.org/alpine/aports/-/issues/11992
+
